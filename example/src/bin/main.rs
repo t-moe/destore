@@ -16,9 +16,6 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
 }
 
 extern crate alloc;
-
-//use postcard_schema::Schema;
-//use postcard_schema::schema::NamedType;
 export_schema!(Record);
 
 #[esp_hal_embassy::main]
@@ -49,11 +46,6 @@ async fn main(spawner: Spawner) {
         age: 20,
     });
     s.write(&r1).await.unwrap();
-
-    info!(
-        "size {}",
-        core::mem::size_of::<postcard_schema::schema::DataModelType>()
-    );
 
     // TODO: Spawn some tasks
     let _ = spawner;

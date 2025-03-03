@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
-members  = ["destore", "destore-tools", "destore-tools/tests/*","example"]
+members = ["destore", "destore-tools", "destore-tools/tests/*", "example"]
 
 
 
 [patch.crates-io]
-postcard-schema = {git="https://github.com/jamesmunns/postcard/", branch="main"}
-postcard= {git="https://github.com/jamesmunns/postcard/", branch="main"}
-postcard-dyn= {git="https://github.com/jamesmunns/postcard/", branch="main"}
+postcard-schema = { git = "https://github.com/jamesmunns/postcard/", branch = "main" }
+postcard = { git = "https://github.com/jamesmunns/postcard/", branch = "main" }
+postcard-dyn = { git = "https://github.com/jamesmunns/postcard/", branch = "main" }
