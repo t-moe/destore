@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name    = "elf-schema-restore-test"
+version = "0.1.0"
+
+[dependencies]
+postcard-schema = "0.2.1"
+destore = { path = "../../../destore" }
+esp-hal = { version = "1.0.0-beta.0", features = [
+    "esp32c6",
+    "unstable",
+] }

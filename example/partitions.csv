@@ -1,0 +1,7 @@
+# ESP-IDF Partition Table
+# https://github.com/esp-rs/espflash/blob/main/espflash/src/targets/mod.rs#L171
+# https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-guides/partition-tables.html
+# Name,    Type, SubType, Offset,  Size, Flags
+# Cannot start earlier than 0x9000, because the partition table is stored at 0x8000
+ota_0,     app,  factory,   0x20000,  3M,
+destore,   0x40, 0,         0x620000, 0x1E0000
