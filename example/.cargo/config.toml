@@ -1,14 +1,15 @@
 [target.riscv32imac-unknown-none-elf]
-runner = "probe-rs run --chip=esp32c6 --always-print-stacktrace --no-location --catch-hardfault"
-
+runner = "../target/debug/destore proxy -- espflash flash"
+#runner = "probe-rs run --chip=esp32c6 --always-print-stacktrace --no-location --catch-hardfault"
+#runner = "espflash flash "
 [env]
-DEFMT_LOG="info"
+DEFMT_LOG = "info"
 
 [build]
 rustflags = [
-  # Required to obtain backtraces (e.g. when using the "esp-backtrace" crate.)
-  # NOTE: May negatively impact performance of produced code
-  "-C", "force-frame-pointers",
+    # Required to obtain backtraces (e.g. when using the "esp-backtrace" crate.)
+    # NOTE: May negatively impact performance of produced code
+    "-C", "force-frame-pointers",
 ]
 
 target = "riscv32imac-unknown-none-elf"

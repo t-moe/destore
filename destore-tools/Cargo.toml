@@ -20,6 +20,7 @@ clap-num = "1.2.0"
 sequential-storage = { version = "4.0.1", features = ["std", "alloc"] }
 futures = { version = "0.3.31", features = ["executor"] }
 postcard-dyn = "0.2.0"
+postcard = { version = "1.1.1", features = ["use-std", "alloc"] }
 
 
 

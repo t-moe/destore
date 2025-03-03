@@ -1,10 +1,11 @@
 use clap::{Args, Parser, Subcommand};
-use destore_tools::{unpack_partition, SchemaRestorer};
+use destore_tools::{unpack_partition, Cache, SchemaRestorer};
 use espflash::cli::config::Config;
 use espflash::cli::{connect, ConnectArgs};
 use espflash::targets::Chip;
 use log::{info, LevelFilter};
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
 use tempfile::NamedTempFile;
 
@@ -30,8 +31,14 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Dump the destore records from a connected device and output them to stdout
     Dump(DumpCommand),
+
+    /// Decodes a destore partition file and outputs the records to stdout
     Decode(DecodeCommand),
+
+    /// Intercepts (& executes) the command and stores the postcard schema found in the ELF file
+    Proxy(ProxyCommand),
 }
 
 impl Commands {
@@ -39,6 +46,7 @@ impl Commands {
         match self {
             Commands::Dump(cmd) => cmd.run(),
             Commands::Decode(cmd) => cmd.run(),
+            Commands::Proxy(cmd) => cmd.run(),
         }
     }
 }
@@ -69,6 +77,39 @@ pub struct DecodeCommand {
 
     #[clap(flatten)]
     common_args: CommonArgs,
+}
+
+#[derive(Args)]
+pub struct ProxyCommand {
+    #[arg(last = true)]
+    args: Vec<String>,
+}
+
+impl ProxyCommand {
+    fn run(self) -> anyhow::Result<()> {
+        if let Some(last) = self.args.last() {
+            if fs::exists(last)? {
+                let last = last.clone();
+                std::thread::spawn(move || -> anyhow::Result<()> {
+                    let elf = SchemaRestorer::from_path(last)?;
+                    let schema = elf.load_schema_from_symbol("_DESTORE_SCHEMA")?;
+                    //info!("Schema found: {:?}", &schema);
+                    let mut cache = Cache::new();
+                    cache.store(&schema)?;
+                    Ok(())
+                });
+            }
+        }
+
+        // run the command in args
+        let output = std::process::Command::new(&self.args[0])
+            .args(&self.args[1..])
+            .output()?;
+        std::io::stdout().write_all(&output.stdout)?;
+        std::io::stderr().write_all(&output.stderr)?;
+
+        std::process::exit(output.status.code().unwrap());
+    }
 }
 
 #[derive(Args)]

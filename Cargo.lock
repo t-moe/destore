@@ -749,6 +749,7 @@ dependencies = [
  "goblin",
  "log",
  "memmap2",
+ "postcard",
  "postcard-dyn",
  "postcard-schema",
  "sequential-storage",
