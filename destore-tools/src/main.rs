@@ -37,7 +37,7 @@ pub enum Commands {
     /// Decodes a destore partition file and outputs the records to stdout
     Decode(DecodeCommand),
 
-    /// Intercepts (& executes) the command and stores the postcard schema found in the ELF file
+    /// Intercepts (& executes) the passed command and stores the postcard schema found in the ELF file
     Proxy(ProxyCommand),
 }
 

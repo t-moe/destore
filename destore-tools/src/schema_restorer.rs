@@ -7,9 +7,9 @@ use postcard_schema::schema::owned::{
 };
 use std::{fs::File, path::Path};
 
-// Tries to recover a postcard schema from an ELF file
 // `RUSTFLAGS=-Zprint-type-sizes  cargo +nightly build > out.txt` helped a lot to understand the layout of the types
 
+/// Tries to recover a postcard schema from an ELF file
 pub struct SchemaRestorer {
     // Use a reference to the mmap data for the Elf
     elf: Elf<'static>,
@@ -18,11 +18,9 @@ pub struct SchemaRestorer {
 
 impl SchemaRestorer {
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
-        // Memory map the file for efficient access
+        //TODO: remove unsafe trickery
         let file = File::open(path)?;
         let mmap = unsafe { Mmap::map(&file)? };
-
-        // Convert mmap to static lifetime - safe because we keep mmap alive with the struct
         let mmap_slice: &'static [u8] = unsafe { std::mem::transmute(mmap.as_ref()) };
         let elf = Elf::parse(mmap_slice).context("Failed to parse ELF file")?;
 
@@ -318,6 +316,7 @@ impl SchemaRestorer {
         Ok(types_vec.into_boxed_slice())
     }
 
+    /// Load a schema from a symbol (e.g. _DESTORE_SCHEMA) in the ELF file
     pub fn load_schema_from_symbol(&self, symbol: &str) -> Result<OwnedDataModelType> {
         let schema_sym = self.find_symbol(symbol)?;
         let section_idx = schema_sym.st_shndx;
