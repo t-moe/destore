@@ -10,9 +10,10 @@ pub struct Cache {
 
 impl Cache {
     pub fn new() -> Self {
-        let mut dir = PathBuf::from(
+        /* let mut dir = PathBuf::from(
             std::env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"),
-        );
+        );*/
+        let mut dir = PathBuf::from(std::env::current_dir().expect("failed to get current dir"));
         dir.push(".destore");
         info!("Destore Cache Directory: {:?}", dir);
         if !dir.exists() {
@@ -50,6 +51,7 @@ impl Cache {
             );
             return Ok(None);
         }
-        Ok(postcard::from_bytes(&fs::read(&path)?)?)
+        let schema = postcard::from_bytes(&fs::read(&path)?)?;
+        Ok(Some(schema))
     }
 }

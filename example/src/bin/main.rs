@@ -42,10 +42,13 @@ async fn main(spawner: Spawner) {
     .unwrap();
 
     let r1 = Record::Sub(Sub {
-        name: "Alice".to_string(),
+        first_name: "Alice".to_string(),
+        last_name: "Summers".to_string(),
         age: 20,
+        brothers: 2,
     });
     s.write(&r1).await.unwrap();
+    s.write(&Record::Panic("help".to_string())).await.unwrap();
 
     // TODO: Spawn some tasks
     let _ = spawner;

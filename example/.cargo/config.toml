@@ -1,5 +1,6 @@
 [target.riscv32imac-unknown-none-elf]
-runner = "../target/debug/destore proxy -- espflash flash"
+#runner = "../target/debug/destore proxy -- espflash flash --monitor"
+runner = "../target/debug/destore proxy -- probe-rs download --chip=esp32c6"
 #runner = "probe-rs run --chip=esp32c6 --always-print-stacktrace --no-location --catch-hardfault"
 #runner = "espflash flash "
 [env]

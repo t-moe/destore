@@ -1,22 +1,16 @@
 use crate::flash_utils::FlashVec;
+use crate::Cache;
 use anyhow::{anyhow, bail};
 use futures::executor::block_on;
 use log::info;
 use postcard_dyn::from_slice_dyn;
-use postcard_schema::key::hash::fnv1a64_owned::hash_ty_path_owned;
-use postcard_schema::schema::owned::OwnedDataModelType;
 use sequential_storage::cache::NoCache;
 use std::ops::Deref;
 
 const ID_SCHEMA: u8 = 0xFF;
 
-pub fn unpack_partition(partition: &mut [u8], schema: OwnedDataModelType) -> anyhow::Result<()> {
-    let schema_hash = hash_ty_path_owned("", &schema);
-
-    info!(
-        "Unpacking partition with schema {:#x?}: {:#?}",
-        schema_hash, schema
-    );
+pub fn unpack_partition(partition: &mut [u8]) -> anyhow::Result<()> {
+    let mut schema_cache = Cache::new();
     info!("partition size: {}", partition.len());
 
     let range = 0..partition.len() as u32;
@@ -26,7 +20,7 @@ pub fn unpack_partition(partition: &mut [u8], schema: OwnedDataModelType) -> any
         &mut flash, range, &mut cache,
     ))?;
     let mut buf = [0; 1024];
-
+    let mut schema = None;
     loop {
         if let Some(entry) = block_on(it.next(&mut buf))
             .map_err(|_| anyhow!("Failed to fetch next batch of logs"))?
@@ -35,17 +29,26 @@ pub fn unpack_partition(partition: &mut [u8], schema: OwnedDataModelType) -> any
                 bail!("Empty entry");
             }
             if entry[0] == ID_SCHEMA {
-                info!("Schema entry");
-                let hash = &entry[1..];
-                if schema_hash == hash {
-                    info!("Schema matches");
+                let hash: &[u8; 8] = &entry[1..].try_into()?;
+                info!(
+                    "Schema entry: {}",
+                    hash.iter()
+                        .map(|b| format!("{:02x}", b))
+                        .collect::<String>()
+                );
+                if let Some(s) = schema_cache.lookup(hash)? {
+                    schema = Some(s);
                 } else {
-                    bail!("Schema unknown {:#x?}", hash);
+                    bail!("Schema not found: {:?}", hash);
                 }
             } else {
-                let value = from_slice_dyn(&schema, entry.deref())
-                    .map_err(|e| anyhow!("Failed to decode entry: {:?}", e))?;
-                info!("Data entry: {:?}", value);
+                if let Some(schema) = schema.as_ref() {
+                    let value = from_slice_dyn(&schema, entry.deref())
+                        .map_err(|e| anyhow!("Failed to decode entry: {:?}", e))?;
+                    info!("Data entry: {:?}", value);
+                } else {
+                    bail!("Cannot decode data entry without schema");
+                }
             }
         } else {
             break;

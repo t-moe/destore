@@ -113,11 +113,7 @@ impl ProxyCommand {
 }
 
 #[derive(Args)]
-pub struct CommonArgs {
-    /// The elf to use to decode the destore records
-    #[clap(long)]
-    elf: PathBuf,
-}
+pub struct CommonArgs {}
 
 impl DumpCommand {
     fn run(mut self) -> anyhow::Result<()> {
@@ -174,18 +170,8 @@ impl DecodeCommand {
     }
 }
 
-fn output_records(partition: &mut [u8], common_args: &CommonArgs) -> anyhow::Result<()> {
-    if !common_args.elf.exists() {
-        return Err(anyhow::anyhow!(
-            "ELF file {:?} does not exist",
-            common_args.elf
-        ));
-    }
-
-    let elf = SchemaRestorer::from_path(&common_args.elf)?;
-    let schema = elf.load_schema_from_symbol("_DESTORE_SCHEMA")?;
-
-    unpack_partition(partition, schema)?;
+fn output_records(partition: &mut [u8], _common_args: &CommonArgs) -> anyhow::Result<()> {
+    unpack_partition(partition)?;
 
     Ok(())
 }
